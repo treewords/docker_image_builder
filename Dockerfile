@@ -1,6 +1,11 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Set environment variables
+ENV BINGX_URL="wss://open-api-swap.bingx.com/swap-market"
+ENV BINGX_SYMBOL="BTC-USDT"
+ENV BINGX_TIMEFRAME="1m"
+
 # Set the working directory in the container
 WORKDIR /app
 

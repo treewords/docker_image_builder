@@ -4,6 +4,7 @@ import asyncio
 import websockets
 import gzip
 import io
+import os
 import pandas as pd
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -13,9 +14,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 @dataclass
 class Config:
-    URL: str = "wss://open-api-swap.bingx.com/swap-market"
-    SYMBOL: str = "BTC-USDT"
-    TIMEFRAME: str = "1m"
+    URL: str = os.getenv("BINGX_URL", "wss://open-api-swap.bingx.com/swap-market")
+    SYMBOL: str = os.getenv("BINGX_SYMBOL", "BTC-USDT")
+    TIMEFRAME: str = os.getenv("BINGX_TIMEFRAME", "1m")
     SUBSCRIPTION: Dict = field(init=False)
 
     def __post_init__(self):
@@ -115,7 +116,7 @@ class BingxStreamer:
 
 if __name__ == "__main__":
     # Example usage:
-    config = Config(SYMBOL="BTC-USDT", TIMEFRAME="15m")
+    config = Config()
 
     streamer = BingxStreamer(config=config)
     try:
