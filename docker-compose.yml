@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  streamer:
+    build: .
+    env_file:
+      - .env
