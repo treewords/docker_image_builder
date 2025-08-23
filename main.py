@@ -122,14 +122,19 @@ class BingxStreamer:
         logging.info("Subscribed to: %s", sub_str)
 
     async def start(self):
+        backoff_gen = backoff.expo(factor=2, max_value=60)
         while True:
             try:
                 await self._connect_and_subscribe()
+                # on successful connection, reset the backoff generator
+                backoff_gen = backoff.expo(factor=2, max_value=60)
                 async for message in self.ws:
                     await self._process_message(message)
-            except (ConnectionClosed, ProtocolError) as e:
-                logging.warning(f"WebSocket connection lost: {e}. Reconnecting...")
-                await asyncio.sleep(5)  # wait before trying to reconnect
+            except (ConnectionClosed, ProtocolError, asyncio.TimeoutError) as e:
+                wait = next(backoff_gen)
+                sleep_time = backoff.full_jitter(wait)
+                logging.warning(f"WebSocket connection lost: {e}. Reconnecting in {sleep_time:.2f} seconds...")
+                await asyncio.sleep(sleep_time)
             except Exception as e:
                 logging.error(f"An unexpected error occurred in the main loop: {e}")
                 # Decide if you want to break the loop or retry on other exceptions
