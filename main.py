@@ -14,6 +14,11 @@ from websockets.exceptions import ConnectionClosed, ProtocolError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+def safe_full_jitter(value):
+    if value is None:
+        return 0
+    return backoff.full_jitter(value)
+
 @dataclass
 class Config:
     URL: str = os.getenv("BINGX_URL", "wss://open-api-swap.bingx.com/swap-market")
@@ -112,7 +117,7 @@ class BingxStreamer:
     @backoff.on_exception(backoff.expo,
                           (ConnectionClosed, ProtocolError, asyncio.TimeoutError),
                           max_tries=8,
-                          jitter=backoff.full_jitter)
+                          jitter=safe_full_jitter)
     async def _connect_and_subscribe(self):
         logging.info('Attempting to connect to WebSocket...')
         self.ws = await websockets.connect(self.config.URL)
@@ -132,7 +137,7 @@ class BingxStreamer:
                     await self._process_message(message)
             except (ConnectionClosed, ProtocolError, asyncio.TimeoutError) as e:
                 wait = next(backoff_gen)
-                sleep_time = backoff.full_jitter(wait)
+                sleep_time = safe_full_jitter(wait)
                 logging.warning(f"WebSocket connection lost: {e}. Reconnecting in {sleep_time:.2f} seconds...")
                 await asyncio.sleep(sleep_time)
             except Exception as e:
