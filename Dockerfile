@@ -1,6 +1,12 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Install git
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Clone your repo
+RUN git clone https://github.com/treewords/docker_image_builder.git
+
 # Set environment variables
 ENV BINGX_URL="wss://open-api-swap.bingx.com/swap-market"
 ENV BINGX_SYMBOL="BTC-USDT"
