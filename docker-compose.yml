@@ -1,5 +1,6 @@
 services:
   streamer:
+    image: streamer:latest
     build: .
     env_file:
       - .env
